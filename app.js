@@ -155,14 +155,18 @@
     if (!term) { detailEl.innerHTML = '<div class="detail-card"><p>Термин не найден.</p><button class="back-button" type="button" data-action="back">← Назад</button></div>'; return; }
     detailEl.innerHTML = '<button class="back-button" type="button" data-action="back">← Назад</button>' +
       '<article class="detail-card"><div class="term-title-row"><h3 class="term-open">' + esc(term.term_en) + '</h3><span class="glossary-label">' + esc(glossaryLabel(term.glossary)) + '</span></div>' +
-      '<p class="term-ru">' + esc(term.term_ru) + '</p><p class="definition">' + esc(term.definition_ru) + '</p>' +
+      '<p class="term-ru">' + esc(term.term_ru) + '</p>' +
+      (term.pronunciation_ru ? '<p class="pronunciation"><span>Произношение:</span> ' + esc(term.pronunciation_ru) + '</p>' : '') +
+      '<p class="definition">' + esc(term.definition_ru) + '</p>' +
       '<p class="label">Теги</p><div class="card-tags">' + tagButtons(term.tags) + '</div>' +
       '<p class="label">Связанные термины</p><div class="related-list">' + relatedButtons(term) + '</div></article>';
   }
   function termCard(term) {
     return '<article class="term-card' + (state.term === term.id ? ' is-selected' : '') + '">' +
       '<div class="term-title-row"><button type="button" class="term-open" data-action="term" data-id="' + esc(term.id) + '">' + esc(term.term_en) + '</button><span class="glossary-label">' + esc(glossaryLabel(term.glossary)) + '</span></div>' +
-      '<p class="term-ru">' + esc(term.term_ru) + '</p><p class="definition">' + esc(term.definition_ru) + '</p>' +
+      '<p class="term-ru">' + esc(term.term_ru) + '</p>' +
+      (term.pronunciation_ru ? '<p class="pronunciation"><span>Произношение:</span> ' + esc(term.pronunciation_ru) + '</p>' : '') +
+      '<p class="definition">' + esc(term.definition_ru) + '</p>' +
       '<div class="card-tags">' + tagButtons(term.tags) + '</div></article>';
   }
   function describeFilters() {
@@ -240,12 +244,16 @@
       if (xhr.readyState !== 4) { return; }
       if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) {
         try {
-          data = validate(JSON.parse(xhr.responseText));
-          state = parseHash();
-          searchEl.value = state.q;
-          workspace.hidden = false;
-          status.hidden = true;
-          render();
+          var manifest = JSON.parse(xhr.responseText);
+          if (manifest.terms) {
+            data = manifest;
+            finishLoading();
+          } else if (manifest.glossaries && manifest.term_files) {
+            data = { glossaries: manifest.glossaries, terms: [], term_files: manifest.term_files };
+            loadTermFiles(manifest.term_files);
+          } else {
+            throw new Error("В data/glossaries.json не найдены terms или term_files.");
+          }
         } catch (error) {
           status.innerHTML = "Не удалось разобрать данные глоссария: " + esc(error.message);
         }
@@ -255,6 +263,61 @@
     };
     xhr.onerror = function () { status.innerHTML = "Ошибка сети при загрузке data/glossaries.json."; };
     xhr.send(null);
+
+    function finishLoading() {
+      try {
+        data = validate(data);
+        state = parseHash();
+        searchEl.value = state.q;
+        workspace.hidden = false;
+        status.hidden = true;
+        render();
+      } catch (error) {
+        status.innerHTML = "Ошибка данных глоссария: " + esc(error.message);
+      }
+    }
+
+    function loadTermFiles(paths) {
+      var parts = [], pending = paths.length, failed = false, i;
+      if (!pending) { finishLoading(); return; }
+      function fail(message) {
+        if (failed) { return; }
+        failed = true;
+        status.innerHTML = message;
+      }
+      for (i = 0; i < paths.length; i += 1) {
+        (function (index) {
+          var termXhr = new XMLHttpRequest();
+          termXhr.open("GET", "data/" + paths[index], true);
+          termXhr.onreadystatechange = function () {
+            if (termXhr.readyState !== 4 || typeof parts[index] !== "undefined" || failed) { return; }
+            if ((termXhr.status >= 200 && termXhr.status < 300) || termXhr.status === 0) {
+              try {
+                var parsedTerms = JSON.parse(termXhr.responseText);
+                if (!(parsedTerms instanceof Array)) { throw new Error(paths[index] + " должен содержать массив терминов."); }
+                parts[index] = parsedTerms;
+                pending -= 1;
+                if (pending === 0) {
+                  data.terms = [];
+                  var j, k;
+                  for (j = 0; j < parts.length; j += 1) {
+                    for (k = 0; k < parts[j].length; k += 1) { data.terms.push(parts[j][k]); }
+                  }
+                  delete data.term_files;
+                  finishLoading();
+                }
+              } catch (error) {
+                fail("Не удалось разобрать " + esc(paths[index]) + ": " + esc(error.message));
+              }
+            } else {
+              fail("Не удалось загрузить data/" + esc(paths[index]) + " (HTTP " + termXhr.status + ").");
+            }
+          };
+          termXhr.onerror = function () { fail("Ошибка сети при загрузке data/" + esc(paths[index]) + "."); };
+          termXhr.send(null);
+        }(i));
+      }
+    }
   }
   app.addEventListener("click", onClick, false);
   searchEl.addEventListener("input", onSearch, false);
