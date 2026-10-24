@@ -1,25 +1,56 @@
 {
   "glossaries": [
-    {"id":"anatomy","name_en":"Anatomy","name_ru":"Анатомия"},
-    {"id":"pathology","name_en":"Pathology","name_ru":"Патология"},
-    {"id":"pharmacology","name_en":"Pharmacology","name_ru":"Фармакология"}
+    {
+      "id": "pelvis",
+      "name_en": "Pelvis & Pelvic Floor",
+      "name_ru": "Таз и тазовое дно"
+    },
+    {
+      "id": "vulva",
+      "name_en": "Vulva",
+      "name_ru": "Вульва — наружные половые органы"
+    },
+    {
+      "id": "vagina",
+      "name_en": "Vagina",
+      "name_ru": "Влагалище"
+    },
+    {
+      "id": "uterus",
+      "name_en": "Uterus & Endometrium",
+      "name_ru": "Матка и эндометрий"
+    },
+    {
+      "id": "cervix",
+      "name_en": "Cervix",
+      "name_ru": "Шейка матки"
+    },
+    {
+      "id": "tubes",
+      "name_en": "Fallopian Tubes",
+      "name_ru": "Маточные трубы"
+    },
+    {
+      "id": "ovaries",
+      "name_en": "Ovaries",
+      "name_ru": "Яичники"
+    },
+    {
+      "id": "cycle",
+      "name_en": "Cycle & Hormonal Regulation",
+      "name_ru": "Менструальный цикл и гормоны"
+    }
   ],
-  "terms": [
-    {"id":"anatomy:myocardium","glossary":"anatomy","term_en":"myocardium","term_ru":"миокард","definition_ru":"Мышечный слой стенки сердца, обеспечивающий его сокращение.","tags":["anatomy","heart","muscle"],"related":["pathology:myocardial_infarction"]},
-    {"id":"anatomy:atrium","glossary":"anatomy","term_en":"atrium","term_ru":"предсердие","definition_ru":"Одна из двух верхних камер сердца, принимающая кровь.","tags":["anatomy","heart"],"related":["pathology:atrial_fibrillation"]},
-    {"id":"anatomy:ventricle","glossary":"anatomy","term_en":"ventricle","term_ru":"желудочек сердца","definition_ru":"Одна из двух нижних камер сердца, выбрасывающих кровь в артерии.","tags":["anatomy","heart","blood vessels"],"related":["pathology:myocardial_infarction"]},
-    {"id":"anatomy:coronary_artery","glossary":"anatomy","term_en":"coronary artery","term_ru":"коронарная артерия","definition_ru":"Артерия, снабжающая кровью миокард.","tags":["anatomy","heart","blood vessels"],"related":["pathology:atherosclerosis","pathology:myocardial_infarction"]},
-    {"id":"anatomy:inflammation","glossary":"anatomy","term_en":"inflammation","term_ru":"воспаление","definition_ru":"Защитная тканевая реакция на повреждение или инфекцию.","tags":["anatomy","inflammation"],"related":["pathology:myocarditis"]},
-    {"id":"anatomy:valve","glossary":"anatomy","term_en":"heart valve","term_ru":"клапан сердца","definition_ru":"Структура, обеспечивающая однонаправленный ток крови через сердце.","tags":["anatomy","heart"],"related":["pathology:endocarditis"]},
-    {"id":"pathology:myocardial_infarction","glossary":"pathology","term_en":"myocardial infarction","term_ru":"инфаркт миокарда","definition_ru":"Некроз участка сердечной мышцы вследствие острой ишемии.","tags":["pathology","heart","blood vessels"],"related":["anatomy:myocardium","pharmacology:aspirin"]},
-    {"id":"pathology:atherosclerosis","glossary":"pathology","term_en":"atherosclerosis","term_ru":"атеросклероз","definition_ru":"Хроническое поражение артерий с образованием атеросклеротических бляшек.","tags":["pathology","blood vessels","inflammation"],"related":["anatomy:coronary_artery"]},
-    {"id":"pathology:myocarditis","glossary":"pathology","term_en":"myocarditis","term_ru":"миокардит","definition_ru":"Воспалительное заболевание сердечной мышцы.","tags":["pathology","heart","inflammation"],"related":["anatomy:inflammation","pharmacology:ibuprofen"]},
-    {"id":"pathology:endocarditis","glossary":"pathology","term_en":"endocarditis","term_ru":"эндокардит","definition_ru":"Воспаление внутренней оболочки сердца, нередко с поражением клапанов.","tags":["pathology","heart","inflammation"],"related":["anatomy:valve"]},
-    {"id":"pathology:atrial_fibrillation","glossary":"pathology","term_en":"atrial fibrillation","term_ru":"фибрилляция предсердий","definition_ru":"Нарушение ритма с хаотичной электрической активностью предсердий.","tags":["pathology","heart"],"related":["anatomy:atrium","pharmacology:warfarin"]},
-    {"id":"pathology:vasculitis","glossary":"pathology","term_en":"vasculitis","term_ru":"васкулит","definition_ru":"Воспаление стенок кровеносных сосудов.","tags":["pathology","blood vessels","inflammation"],"related":["anatomy:coronary_artery"]},
-    {"id":"pharmacology:aspirin","glossary":"pharmacology","term_en":"aspirin","term_ru":"ацетилсалициловая кислота","definition_ru":"Антиагрегант и НПВС; применение и дозирование зависят от клинической задачи.","tags":["pharmacology","NSAIDs","heart","blood vessels"],"related":["pathology:myocardial_infarction"]},
-    {"id":"pharmacology:ibuprofen","glossary":"pharmacology","term_en":"ibuprofen","term_ru":"ибупрофен","definition_ru":"Нестероидный противовоспалительный препарат, уменьшающий боль и воспаление.","tags":["pharmacology","NSAIDs","inflammation"],"related":["pathology:myocarditis"]},
-    {"id":"pharmacology:warfarin","glossary":"pharmacology","term_en":"warfarin","term_ru":"варфарин","definition_ru":"Антикоагулянт — антагонист витамина K, требующий мониторинга МНО.","tags":["pharmacology","anticoagulant","heart","blood vessels"],"related":["pathology:atrial_fibrillation"]},
-    {"id":"pharmacology:nitroglycerin","glossary":"pharmacology","term_en":"nitroglycerin","term_ru":"нитроглицерин","definition_ru":"Нитрат, применяемый для купирования приступа стенокардии по назначению врача.","tags":["pharmacology","heart","blood vessels"],"related":["anatomy:coronary_artery"]}
+  "term_files": [
+    "terms/pelvis-a.json",
+    "terms/pelvis-b.json",
+    "terms/vulva.json",
+    "terms/vagina.json",
+    "terms/uterus-a.json",
+    "terms/uterus-b.json",
+    "terms/cervix.json",
+    "terms/tubes.json",
+    "terms/ovaries.json",
+    "terms/cycle.json"
   ]
 }
