@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+  <meta name="theme-color" content="#173d67">
+  <meta name="description" content="Англо-русский медицинский глоссарий переводчика с перекрёстными ссылками.">
+  <title>Глоссарии переводчика</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">EN ↔ RU · TRANSLATOR'S DESK</p>
+      <h1>Глоссарии переводчика</h1>
+      <p class="subtitle">Медицинские термины, теги и перекрёстные ссылки</p>
+    </div>
+  </header>
+  <main id="app" class="wrap">
+    <p id="status" class="status" role="status" aria-live="polite">Загрузка глоссариев…</p>
+    <div id="workspace" hidden>
+      <section class="panel">
+        <div class="section-heading"><h2>Глоссарии</h2><span class="note">Выберите раздел</span></div>
+        <nav id="glossaries" class="button-row" aria-label="Выбор глоссария"></nav>
+      </section>
+      <section class="panel">
+        <div class="section-heading"><h2>Поиск</h2><span class="note">Английский, русский, определение</span></div>
+        <label class="sr-only" for="search">Поиск по терминам</label>
+        <div class="search-row">
+          <input id="search" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Например, heart или миокард">
+          <button id="reset" class="button secondary" type="button" data-action="reset">Сбросить</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="section-heading"><h2>Теги</h2><span class="note">Тег ищет сразу во всех словарях</span></div>
+        <div id="tags" class="tag-cloud" aria-label="Фильтр по тегам"></div>
+      </section>
+      <section class="results-section">
+        <div class="section-heading"><div><h2 id="results-title">Термины</h2><p id="summary" class="summary"></p></div></div>
+        <div id="detail"></div>
+        <div id="terms" class="term-list" aria-live="polite"></div>
+        <div id="more" class="more"></div>
+        <p id="empty" class="empty" hidden>Ничего не найдено. Попробуйте изменить запрос или сбросить фильтры.</p>
+      </section>
+      <footer class="site-footer">Работает без сторонних библиотек · Фильтрация после загрузки выполняется локально</footer>
+    </div>
+    <noscript><p class="status">Для работы глоссария необходимо включить JavaScript.</p></noscript>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
