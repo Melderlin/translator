@@ -34,6 +34,8 @@ h2 { margin: 0; color: #173d67; font-size: 23px; line-height: 1.25; }
 .term-title-row { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-start; align-items: flex-start; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
 .term-open { display: inline; padding: 0; border: 0; background: transparent; color: #135b80; font-size: 23px; line-height: 1.25; font-weight: bold; text-align: left; text-decoration: underline; }
 .term-ru { margin: 5px 0 8px; color: #1b2937; font-size: 20px; font-weight: bold; }
+.pronunciation { margin: -2px 0 10px; color: #536577; font-size: 16px; }
+.pronunciation span { font-weight: bold; color: #39536a; }
 .definition { margin: 6px 0 12px; color: #344454; font-size: 18px; overflow-wrap: break-word; word-wrap: break-word; }
 .label { margin: 15px 0 7px; color: #526477; font-size: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; }
 .glossary-label { display: inline-block; margin: 3px 0 0 10px; padding: 3px 8px; border-radius: 5px; background: #eaf0f5; color: #39536a; font-size: 14px; font-weight: bold; }
