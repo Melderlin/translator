@@ -1,39 +1,57 @@
-/* ES5 only. Glossary JSON is requested once and then filtered in memory. */
+/* Translator Dream Tool. ES5 only; all navigation after loading is in memory. */
 (function () {
   var data = null;
-  var state = { glossary: "", tag: "", q: "", term: "" };
-  var limit = 30;
+  var state = { glossary: "", tag: "", letter: "A", term: "" };
   var app = document.getElementById("app");
   var status = document.getElementById("status");
   var workspace = document.getElementById("workspace");
-  var glossariesEl = document.getElementById("glossaries");
-  var tagsEl = document.getElementById("tags");
-  var searchEl = document.getElementById("search");
-  var summaryEl = document.getElementById("summary");
-  var resultsTitleEl = document.getElementById("results-title");
-  var detailEl = document.getElementById("detail");
-  var termsEl = document.getElementById("terms");
-  var moreEl = document.getElementById("more");
+  var sectionNav = document.getElementById("section-nav");
+  var bottomNav = document.getElementById("bottom-nav");
+  var titleEl = document.getElementById("view-title");
+  var summaryEl = document.getElementById("view-summary");
+  var letterNav = document.getElementById("letter-nav");
+  var termsEl = document.getElementById("term-list");
   var emptyEl = document.getElementById("empty");
+  var clearFilterEl = document.getElementById("clear-filter");
+  var selectedTermId = "";
+  var SHORT = {
+    pelvis: "Таз", vulva: "Вульва", vagina: "Влагалище", uterus: "Матка",
+    cervix: "Шейка", tubes: "Трубы", ovaries: "Яичники", cycle: "Цикл"
+  };
+  var EN_SHORT = {
+    pelvis: "PELVIS", vulva: "VULVA", vagina: "VAGINA", uterus: "UTERUS",
+    cervix: "CERVIX", tubes: "TUBES", ovaries: "OVARIES", cycle: "CYCLE"
+  };
+  var COLORS = {
+    pelvis: "#7057b8", vulva: "#c44770", vagina: "#16817d", uterus: "#2867b2",
+    cervix: "#b9691c", tubes: "#39804f", ovaries: "#9451a8", cycle: "#987008"
+  };
+  var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   function decode(value) {
     try { return decodeURIComponent(String(value).replace(/\+/g, " ")); }
     catch (ignore) { return String(value); }
   }
   function encode(value) { return encodeURIComponent(value); }
+  function termLetter(term) {
+    var letter = String(term.term_en || "").charAt(0).toUpperCase();
+    return LETTERS.indexOf(letter) !== -1 ? letter : "#";
+  }
   function parseHash() {
-    var result = { glossary: "", tag: "", q: "", term: "" };
+    var result = { glossary: "", tag: "", letter: "A", term: "" };
     var hash = window.location.hash ? window.location.hash.substring(1) : "";
-    var parts = hash.split("&");
-    var i, pair, key, value;
+    var parts = hash.split("&"), i, pair, key, value;
     for (i = 0; i < parts.length; i += 1) {
       pair = parts[i].split("=");
       if (pair.length < 2) { continue; }
-      key = decode(pair.shift());
-      value = decode(pair.join("="));
-      if (key === "glossary" || key === "tag" || key === "q" || key === "term") { result[key] = value; }
+      key = decode(pair.shift()); value = decode(pair.join("="));
+      if (key === "glossary" || key === "tag" || key === "letter" || key === "term") { result[key] = value; }
     }
-    if (result.term) { result.glossary = ""; result.tag = ""; result.q = ""; }
+    if (result.term) {
+      var selected = findTerm(result.term);
+      if (selected) { result.glossary = selected.glossary; result.tag = ""; result.letter = termLetter(selected); }
+    }
+    if (result.letter !== "" && result.letter !== "#" && LETTERS.indexOf(result.letter) === -1) { result.letter = "A"; }
     return result;
   }
   function buildHash() {
@@ -41,26 +59,24 @@
     if (state.term) { return "term=" + encode(state.term); }
     if (state.glossary) { parts.push("glossary=" + encode(state.glossary)); }
     if (state.tag) { parts.push("tag=" + encode(state.tag)); }
-    if (state.q) { parts.push("q=" + encode(state.q)); }
+    if (state.letter !== "") { parts.push("letter=" + encode(state.letter)); }
     return parts.join("&");
   }
-  function navigate() {
-    var next = buildHash();
-    if (next !== (window.location.hash ? window.location.hash.substring(1) : "")) {
-      window.location.hash = next;
+  function updateUrl() {
+    var hash = buildHash();
+    var url = window.location.pathname + window.location.search + (hash ? "#" + hash : "");
+    var current = window.location.pathname + window.location.search + window.location.hash;
+    if (url === current) { return; }
+    if (window.history && window.history.pushState) {
+      window.history.pushState(null, document.title, url);
     } else {
-      render();
+      window.location.hash = hash;
     }
-    render();
   }
-  function replaceSearchHash() {
-    var next = buildHash();
-    var url = window.location.pathname + window.location.search + (next ? "#" + next : "");
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, document.title, url);
-    } else {
-      window.location.hash = next;
-    }
+  function navigate(shouldScroll) {
+    updateUrl();
+    render();
+    if (shouldScroll) { scrollToElement("view-heading", 150); }
   }
   function esc(value) {
     return String(value === null || typeof value === "undefined" ? "" : value)
@@ -69,6 +85,7 @@
   }
   function findTerm(id) {
     var i;
+    if (!data) { return null; }
     for (i = 0; i < data.terms.length; i += 1) {
       if (data.terms[i].id === id) { return data.terms[i]; }
     }
@@ -77,163 +94,218 @@
   function glossaryLabel(id) {
     var i;
     for (i = 0; i < data.glossaries.length; i += 1) {
-      if (data.glossaries[i].id === id) { return data.glossaries[i].name_en; }
+      if (data.glossaries[i].id === id) { return data.glossaries[i].name_ru || data.glossaries[i].name_en || id; }
     }
     return id;
   }
-  function tagCount(tag) {
-    var count = 0, i, j;
-    for (i = 0; i < data.terms.length; i += 1) {
-      for (j = 0; j < data.terms[i].tags.length; j += 1) {
-        if (data.terms[i].tags[j] === tag) { count += 1; break; }
-      }
-    }
-    return count;
-  }
-  function allTags() {
-    var result = [], i, j, tag;
-    for (i = 0; i < data.terms.length; i += 1) {
-      for (j = 0; j < data.terms[i].tags.length; j += 1) {
-        tag = data.terms[i].tags[j];
-        if (result.indexOf(tag) === -1) { result.push(tag); }
-      }
-    }
-    result.sort(function (a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : (a.toLowerCase() > b.toLowerCase() ? 1 : 0); });
-    return result;
-  }
-  function renderGlossaries() {
-    var html = '<button type="button" class="button' + (!state.glossary ? ' is-active' : '') + '" data-action="glossary" data-glossary="">Все словари</button>';
-    var i, item;
-    for (i = 0; i < data.glossaries.length; i += 1) {
-      item = data.glossaries[i];
-      html += '<button type="button" class="button' + (state.glossary === item.id ? ' is-active' : '') + '" data-action="glossary" data-glossary="' + esc(item.id) + '">' + esc(item.name_en) + ' · ' + esc(item.name_ru) + '</button>';
-    }
-    glossariesEl.innerHTML = html;
-  }
-  function renderTags() {
-    var tags = allTags(), html = "", i, tag;
-    for (i = 0; i < tags.length; i += 1) {
-      tag = tags[i];
-      html += '<button type="button" class="tag' + (state.tag === tag ? ' is-active' : '') + '" data-action="tag" data-tag="' + esc(tag) + '" aria-pressed="' + (state.tag === tag ? 'true' : 'false') + '">' + esc(tag) + '<span class="count"> ' + tagCount(tag) + '</span></button>';
-    }
-    tagsEl.innerHTML = html;
-  }
-  function matches(term) {
-    var q = (state.q || "").toLowerCase().replace(/^\s+|\s+$/g, "");
-    var text;
-    if (state.glossary && term.glossary !== state.glossary) { return false; }
-    if (state.tag && term.tags.indexOf(state.tag) === -1) { return false; }
-    if (!q) { return true; }
-    text = (term.term_en + " " + term.term_ru + " " + term.definition_ru).toLowerCase();
-    if (text.indexOf(q) !== -1) { return true; }
-    var words = q.split(/\s+/), i;
-    for (i = 0; i < words.length; i += 1) {
-      if (words[i] && text.indexOf(words[i]) === -1) { return false; }
-    }
-    return true;
-  }
-  function tagButtons(tags) {
-    var html = "", i;
-    for (i = 0; i < tags.length; i += 1) {
-      html += '<button type="button" class="tag" data-action="tag" data-tag="' + esc(tags[i]) + '">' + esc(tags[i]) + '</button>';
-    }
-    return html;
-  }
-  function relatedButtons(term) {
-    var html = "", i, related;
-    for (i = 0; i < term.related.length; i += 1) {
-      related = findTerm(term.related[i]);
-      if (related) {
-        html += '<button type="button" class="related-link" data-action="term" data-id="' + esc(related.id) + '"><strong>' + esc(related.term_en) + '</strong><br>' + esc(related.term_ru) + ' · ' + esc(glossaryLabel(related.glossary)) + '</button>';
-      }
-    }
-    return html || '<p>Связанные термины не указаны.</p>';
-  }
-  function renderDetail() {
-    var term = state.term ? findTerm(state.term) : null;
-    if (!state.term) { detailEl.innerHTML = ""; return; }
-    if (!term) { detailEl.innerHTML = '<div class="detail-card"><p>Термин не найден.</p><button class="back-button" type="button" data-action="back">← Назад</button></div>'; return; }
-    detailEl.innerHTML = '<button class="back-button" type="button" data-action="back">← Назад</button>' +
-      '<article class="detail-card"><div class="term-title-row"><h3 class="term-open">' + esc(term.term_en) + '</h3><span class="glossary-label">' + esc(glossaryLabel(term.glossary)) + '</span></div>' +
-      '<p class="term-ru">' + esc(term.term_ru) + '</p>' +
-      (term.pronunciation_ru ? '<p class="pronunciation"><span>Произношение:</span> ' + esc(term.pronunciation_ru) + '</p>' : '') +
-      '<p class="definition">' + esc(term.definition_ru) + '</p>' +
-      '<p class="label">Теги</p><div class="card-tags">' + tagButtons(term.tags) + '</div>' +
-      '<p class="label">Связанные термины</p><div class="related-list">' + relatedButtons(term) + '</div></article>';
-  }
-  function termCard(term) {
-    return '<article class="term-card' + (state.term === term.id ? ' is-selected' : '') + '">' +
-      '<div class="term-title-row"><button type="button" class="term-open" data-action="term" data-id="' + esc(term.id) + '">' + esc(term.term_en) + '</button><span class="glossary-label">' + esc(glossaryLabel(term.glossary)) + '</span></div>' +
-      '<p class="term-ru">' + esc(term.term_ru) + '</p>' +
-      (term.pronunciation_ru ? '<p class="pronunciation"><span>Произношение:</span> ' + esc(term.pronunciation_ru) + '</p>' : '') +
-      '<p class="definition">' + esc(term.definition_ru) + '</p>' +
-      '<div class="card-tags">' + tagButtons(term.tags) + '</div></article>';
-  }
-  function describeFilters() {
-    var parts = [];
-    if (state.glossary) { parts.push(glossaryLabel(state.glossary)); }
-    if (state.tag) { parts.push("тег: " + state.tag); }
-    if (state.q) { parts.push("поиск: " + state.q); }
-    return parts.length ? parts.join(" · ") : "Все словари";
-  }
-  function render() {
-    var found = [], i, term, shown, end;
-    if (!data) { return; }
-    renderGlossaries();
-    renderTags();
-    renderDetail();
+  function glossaryShort(id) { return SHORT[id] || glossaryLabel(id); }
+  function sectionClass(id) { return "section-" + id; }
+  function getScopedTerms() {
+    var result = [], i, term;
     for (i = 0; i < data.terms.length; i += 1) {
       term = data.terms[i];
-      if (matches(term)) { found.push(term); }
+      if (state.glossary && term.glossary !== state.glossary) { continue; }
+      if (state.tag && term.tags.indexOf(state.tag) === -1) { continue; }
+      result.push(term);
     }
-    resultsTitleEl.innerHTML = state.term ? "Результаты" : "Термины";
-    summaryEl.innerHTML = esc(describeFilters()) + " · найдено: " + found.length;
-    end = Math.min(found.length, limit);
-    shown = found.slice(0, end);
+    result.sort(function (a, b) {
+      var x = String(a.term_en).toLowerCase(), y = String(b.term_en).toLowerCase();
+      if (x < y) { return -1; }
+      if (x > y) { return 1; }
+      return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+    });
+    return result;
+  }
+  function availableLetters(terms) {
+    var found = {}, result = [], i, letter;
+    for (i = 0; i < terms.length; i += 1) { found[termLetter(terms[i])] = true; }
+    for (i = 0; i < LETTERS.length; i += 1) {
+      letter = LETTERS.charAt(i);
+      if (found[letter]) { result.push(letter); }
+    }
+    if (found["#"]) { result.push("#"); }
+    return result;
+  }
+  function countForLetter(terms, letter) {
+    var count = 0, i;
+    for (i = 0; i < terms.length; i += 1) { if (termLetter(terms[i]) === letter) { count += 1; } }
+    return count;
+  }
+  function validCurrentLetter(terms) {
+    var available = availableLetters(terms);
+    if (state.letter === "" || available.indexOf(state.letter) !== -1) { return; }
+    if (available.indexOf("A") !== -1) { state.letter = "A"; }
+    else { state.letter = available.length ? available[0] : ""; }
+  }
+  function buttonMarkup(id, isActive, isAll) {
+    var label = isAll ? "Все разделы" : glossaryShort(id);
+    var english = isAll ? "ALL TERMS" : (EN_SHORT[id] || id.toUpperCase());
+    return '<button type="button" class="section-button' + (isAll ? ' nav-all' : ' ' + sectionClass(id)) + (isActive ? ' is-active' : '') +
+      '" data-action="' + (isAll ? 'all' : 'glossary') + '"' + (isAll ? '' : ' data-glossary="' + esc(id) + '"') +
+      ' aria-pressed="' + (isActive ? 'true' : 'false') + '">' + esc(label) + '<small>' + esc(english) + '</small></button>';
+  }
+  function renderSectionNav() {
+    var html = "", i, item;
+    for (i = 0; i < data.glossaries.length; i += 1) {
+      item = data.glossaries[i];
+      html += buttonMarkup(item.id, state.glossary === item.id && !state.tag, false);
+    }
+    sectionNav.innerHTML = html;
+    bottomNav.innerHTML = html;
+    var allButton = document.querySelector(".all-button");
+    allButton.className = "all-button" + (!state.glossary && !state.tag ? " is-active" : "");
+  }
+  function renderLetters(scoped) {
+    var letters = availableLetters(scoped), html = "", i, letter, count;
+    html += '<button type="button" class="letter-button' + (state.letter === "" ? " is-active" : "") + '" data-action="letter" data-letter="" aria-pressed="' + (state.letter === "" ? "true" : "false") + '">Все</button>';
+    for (i = 0; i < letters.length; i += 1) {
+      letter = letters[i]; count = countForLetter(scoped, letter);
+      html += '<button type="button" class="letter-button' + (state.letter === letter ? " is-active" : "") + '" data-action="letter" data-letter="' + esc(letter) + '" aria-pressed="' + (state.letter === letter ? "true" : "false") + '">' +
+        esc(letter) + '<span class="letter-count">' + count + '</span></button>';
+    }
+    letterNav.innerHTML = html;
+  }
+  function tagMarkup(tags) {
+    var html = "", max = Math.min(tags.length, 6), i;
+    for (i = 0; i < max; i += 1) {
+      html += '<button type="button" class="tag-chip" data-action="tag" data-tag="' + esc(tags[i]) + '">' + esc(tags[i]) + '</button>';
+    }
+    if (tags.length > max) { html += '<span class="tag-chip">+' + (tags.length - max) + '</span>'; }
+    return html;
+  }
+  function relatedMarkup(term) {
+    var html = "", i, related, color;
+    for (i = 0; i < term.related.length; i += 1) {
+      related = findTerm(term.related[i]);
+      if (!related) { continue; }
+      color = COLORS[related.glossary] || "#8a9bad";
+      html += '<button type="button" class="related-link ' + sectionClass(related.glossary) + '" style="--related-color:' + color + '" data-action="term" data-id="' + esc(related.id) + '">' +
+        '<strong>' + esc(related.term_en) + '</strong><small>' + esc(related.term_ru) + ' · ' + esc(glossaryShort(related.glossary)) + '</small></button>';
+    }
+    return html || '<span class="bottom-hint">Связи не указаны.</span>';
+  }
+  function termMarkup(term) {
+    var expanded = state.term === term.id;
+    var id = "term-" + term.id.replace(/[^A-Za-z0-9_-]/g, "-");
+    var html = '<article id="' + esc(id) + '" class="term-row ' + sectionClass(term.glossary) + (expanded ? ' is-expanded' : '') + '">' +
+      '<button type="button" class="term-main" data-action="term" data-id="' + esc(term.id) + '" aria-expanded="' + (expanded ? "true" : "false") + '">' +
+      '<span class="row-cue">' + (expanded ? "−" : "+") + '</span><span class="term-line"><span class="term-en">' + esc(term.term_en) + '</span><span class="term-ru">' + esc(term.term_ru) + '</span></span>' +
+      (term.pronunciation_ru ? '<span class="term-pronunciation">Произн.: ' + esc(term.pronunciation_ru) + '</span>' : '') + '</button>';
+    if (expanded) {
+      html += '<div class="term-detail"><p class="term-definition">' + esc(term.definition_ru) + '</p>' +
+        '<div class="detail-label">Теги · нажмите, чтобы увидеть общий набор терминов</div><div class="detail-tags">' + tagMarkup(term.tags) + '</div>' +
+        '<div class="detail-label">Связанные термины · цвет показывает раздел</div><div class="related-list">' + relatedMarkup(term) + '</div>' +
+        '<div class="detail-footer"><button type="button" class="detail-action" data-action="close-term">Свернуть карточку</button>' +
+        '<button type="button" class="detail-action" data-action="top">↑ Переключить раздел</button></div></div>';
+    }
+    return html + '</article>';
+  }
+  function render() {
+    if (!data) { return; }
+    var scoped = getScopedTerms(), letters, shown = [], i, term, sectionTitle;
+    validCurrentLetter(scoped);
+    renderSectionNav();
+    renderLetters(scoped);
+    letters = availableLetters(scoped);
+    for (i = 0; i < scoped.length; i += 1) {
+      term = scoped[i];
+      if (state.letter === "" || termLetter(term) === state.letter) { shown.push(term); }
+    }
+    if (state.term) {
+      term = findTerm(state.term);
+      if (term) { state.glossary = term.glossary; state.tag = ""; }
+    }
+    if (state.tag) { sectionTitle = 'Тег: ' + state.tag; }
+    else if (state.glossary) { sectionTitle = glossaryLabel(state.glossary); }
+    else { sectionTitle = "Все термины"; }
+    titleEl.innerHTML = esc(sectionTitle);
+    summaryEl.innerHTML = shown.length + (shown.length === 1 ? " термин" : " терминов") +
+      (state.letter ? " · буква " + esc(state.letter) : " · все буквы") +
+      (state.glossary ? " · " + esc(glossaryShort(state.glossary)) : " · все разделы");
+    clearFilterEl.hidden = !state.tag;
     termsEl.innerHTML = "";
-    for (i = 0; i < shown.length; i += 1) { termsEl.innerHTML += termCard(shown[i]); }
-    emptyEl.hidden = found.length !== 0;
-    moreEl.innerHTML = end < found.length ? '<button type="button" class="button more-button" data-action="more">Показать ещё (' + (found.length - end) + ')</button>' : "";
+    for (i = 0; i < shown.length; i += 1) { termsEl.innerHTML += termMarkup(shown[i]); }
+    emptyEl.hidden = shown.length !== 0;
+  }
+  function scrollToElement(id, offset) {
+    window.setTimeout(function () {
+      var el = document.getElementById(id), top;
+      if (!el) { return; }
+      top = el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0) - offset;
+      if (top < 0) { top = 0; }
+      window.scrollTo(0, top);
+    }, 30);
+  }
+  function firstLetterForTerm(term) { return termLetter(term); }
+  function firstAvailableLetter() {
+    var letters = availableLetters(getScopedTerms());
+    return letters.indexOf("A") !== -1 ? "A" : (letters.length ? letters[0] : "");
   }
   function onClick(event) {
-    var node = event.target || event.srcElement, action, id;
+    var node = event.target || event.srcElement, action, id, term, targetLetter;
     if (node && node.nodeType === 3) { node = node.parentNode; }
     while (node && node !== app && !(node.getAttribute && node.getAttribute("data-action"))) { node = node.parentNode; }
     if (!node || node === app) { return; }
     action = node.getAttribute("data-action");
     if (event.preventDefault) { event.preventDefault(); }
-    if (action === "glossary") {
-      state.glossary = node.getAttribute("data-glossary") || ""; state.tag = ""; state.term = ""; limit = 30; navigate();
-    } else if (action === "tag") {
-      state.tag = node.getAttribute("data-tag") || ""; state.glossary = ""; state.term = ""; state.q = ""; searchEl.value = ""; limit = 30; navigate();
+    if (action === "all") {
+      state.glossary = ""; state.tag = ""; state.term = "";
+      validCurrentLetter(getScopedTerms());
+      navigate(true);
+    } else if (action === "glossary") {
+      state.glossary = node.getAttribute("data-glossary") || "";
+      state.tag = ""; state.term = "";
+      validCurrentLetter(getScopedTerms());
+      navigate(true);
+    } else if (action === "letter") {
+      state.letter = node.getAttribute("data-letter") || "";
+      state.term = "";
+      navigate(true);
     } else if (action === "term") {
-      id = node.getAttribute("data-id") || ""; if (findTerm(id)) { state.term = id; state.glossary = ""; state.tag = ""; state.q = ""; searchEl.value = ""; limit = 30; navigate(); }
-    } else if (action === "reset") {
-      state = { glossary: "", tag: "", q: "", term: "" }; searchEl.value = ""; limit = 30; navigate();
-    } else if (action === "more") {
-      limit += 30; render();
-    } else if (action === "back") {
-      if (window.history && window.history.length > 1) { window.history.back(); }
-      else { state = { glossary: "", tag: "", q: "", term: "" }; navigate(); }
+      id = node.getAttribute("data-id") || "";
+      term = findTerm(id);
+      if (term) {
+        if (state.term === id) { state.term = ""; }
+        else {
+          state.term = id; state.glossary = term.glossary; state.tag = "";
+          state.letter = firstLetterForTerm(term);
+        }
+        navigate(false);
+        if (state.term) { scrollToElement("term-" + id.replace(/[^A-Za-z0-9_-]/g, "-"), 145); }
+      }
+    } else if (action === "tag") {
+      state.tag = node.getAttribute("data-tag") || "";
+      state.glossary = ""; state.term = ""; state.letter = "";
+      navigate(true);
+    } else if (action === "clear-filter") {
+      state.tag = ""; state.glossary = ""; state.term = "";
+      state.letter = firstAvailableLetter();
+      navigate(true);
+    } else if (action === "close-term") {
+      state.term = "";
+      navigate(false);
+    } else if (action === "top") {
+      scrollToElement("view-heading", 145);
+      if (window.pageYOffset > 300) { window.scrollTo(0, 0); }
     }
   }
-  function onSearch() {
-    state.q = searchEl.value || "";
-    state.term = "";
-    limit = 30;
-    replaceSearchHash();
-    render();
-  }
   function validate(parsed) {
-    var ids = {}, i, j, item, required = ["id", "glossary", "term_en", "term_ru", "definition_ru", "tags", "related"];
-    if (!parsed || !parsed.glossaries || !parsed.terms) { throw new Error("JSON должен содержать glossaries и terms."); }
+    var ids = {}, knownGlossaries = {}, i, j, item;
+    if (!parsed || !parsed.glossaries || !parsed.terms || !(parsed.terms instanceof Array)) { throw new Error("Некорректный манифест или массив терминов."); }
+    for (i = 0; i < parsed.glossaries.length; i += 1) { knownGlossaries[parsed.glossaries[i].id] = true; }
     for (i = 0; i < parsed.terms.length; i += 1) {
       item = parsed.terms[i];
-      for (j = 0; j < required.length; j += 1) {
-        if (typeof item[required[j]] === "undefined") { throw new Error("У термина отсутствует поле " + required[j]); }
+      if (!item.id || !item.glossary || !item.term_en || !item.term_ru || !item.definition_ru || !(item.tags instanceof Array) || !(item.related instanceof Array)) {
+        throw new Error("У термина не заполнены обязательные поля.");
       }
       if (ids[item.id]) { throw new Error("Повторяется ID: " + item.id); }
+      if (!knownGlossaries[item.glossary]) { throw new Error("Неизвестный раздел: " + item.glossary); }
       ids[item.id] = true;
+    }
+    for (i = 0; i < parsed.terms.length; i += 1) {
+      for (j = 0; j < parsed.terms[i].related.length; j += 1) {
+        if (!ids[parsed.terms[i].related[j]]) { throw new Error("Не найдена связанная запись: " + parsed.terms[i].related[j]); }
+      }
     }
     return parsed;
   }
@@ -251,32 +323,31 @@
           } else if (manifest.glossaries && manifest.term_files) {
             data = { glossaries: manifest.glossaries, terms: [], term_files: manifest.term_files };
             loadTermFiles(manifest.term_files);
-          } else {
-            throw new Error("В data/glossaries.json не найдены terms или term_files.");
-          }
+          } else { throw new Error("В манифесте не найдены terms или term_files."); }
         } catch (error) {
-          status.innerHTML = "Не удалось разобрать данные глоссария: " + esc(error.message);
+          status.innerHTML = "Не удалось загрузить данные: " + esc(error.message);
         }
-      } else {
-        status.innerHTML = "Не удалось загрузить data/glossaries.json (HTTP " + xhr.status + "). Откройте сайт через HTTPS GitHub Pages.";
-      }
+      } else { status.innerHTML = "Не удалось загрузить data/glossaries.json (HTTP " + xhr.status + ")."; }
     };
-    xhr.onerror = function () { status.innerHTML = "Ошибка сети при загрузке data/glossaries.json."; };
+    xhr.onerror = function () { status.innerHTML = "Ошибка сети при загрузке манифеста."; };
     xhr.send(null);
 
     function finishLoading() {
       try {
         data = validate(data);
         state = parseHash();
-        searchEl.value = state.q;
+        if (state.term) {
+          var currentTerm = findTerm(state.term);
+          if (!currentTerm) { state.term = ""; }
+          else { state.glossary = currentTerm.glossary; state.letter = termLetter(currentTerm); state.tag = ""; }
+        }
+        validCurrentLetter(getScopedTerms());
         workspace.hidden = false;
         status.hidden = true;
         render();
-      } catch (error) {
-        status.innerHTML = "Ошибка данных глоссария: " + esc(error.message);
-      }
+        if (state.term) { scrollToElement("term-" + state.term.replace(/[^A-Za-z0-9_-]/g, "-"), 145); }
+      } catch (error) { status.innerHTML = "Ошибка данных глоссария: " + esc(error.message); }
     }
-
     function loadTermFiles(paths) {
       var parts = [], pending = paths.length, failed = false, i;
       if (!pending) { finishLoading(); return; }
@@ -294,7 +365,7 @@
             if ((termXhr.status >= 200 && termXhr.status < 300) || termXhr.status === 0) {
               try {
                 var parsedTerms = JSON.parse(termXhr.responseText);
-                if (!(parsedTerms instanceof Array)) { throw new Error(paths[index] + " должен содержать массив терминов."); }
+                if (!(parsedTerms instanceof Array)) { throw new Error(paths[index] + " должен содержать массив."); }
                 parts[index] = parsedTerms;
                 pending -= 1;
                 if (pending === 0) {
@@ -306,24 +377,26 @@
                   delete data.term_files;
                   finishLoading();
                 }
-              } catch (error) {
-                fail("Не удалось разобрать " + esc(paths[index]) + ": " + esc(error.message));
-              }
-            } else {
-              fail("Не удалось загрузить data/" + esc(paths[index]) + " (HTTP " + termXhr.status + ").");
-            }
+              } catch (error) { fail("Ошибка в " + esc(paths[index]) + ": " + esc(error.message)); }
+            } else { fail("Не удалось загрузить data/" + esc(paths[index]) + " (HTTP " + termXhr.status + ")."); }
           };
-          termXhr.onerror = function () { fail("Ошибка сети при загрузке data/" + esc(paths[index]) + "."); };
+          termXhr.onerror = function () { fail("Сетевая ошибка при загрузке data/" + esc(paths[index]) + "."); };
           termXhr.send(null);
         }(i));
       }
     }
   }
   app.addEventListener("click", onClick, false);
-  searchEl.addEventListener("input", onSearch, false);
+  document.querySelector(".sticky-shell").addEventListener("click", onClick, false);
+  window.addEventListener("popstate", function () {
+    if (!data) { return; }
+    state = parseHash();
+    render();
+  }, false);
   window.addEventListener("hashchange", function () {
     if (!data) { return; }
-    state = parseHash(); searchEl.value = state.q; limit = 30; render();
+    state = parseHash();
+    render();
   }, false);
   load();
 }());
