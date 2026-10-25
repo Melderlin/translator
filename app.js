@@ -38,8 +38,9 @@
     return LETTERS.indexOf(letter) !== -1 ? letter : "#";
   }
   function parseHash() {
-    var result = { glossary: "", tag: "", letter: "A", term: "" };
+    var result = { glossary: "", tag: "", letter: "", term: "" };
     var hash = window.location.hash ? window.location.hash.substring(1) : "";
+    if (!hash) { result.letter = "A"; }
     var parts = hash.split("&"), i, pair, key, value;
     for (i = 0; i < parts.length; i += 1) {
       pair = parts[i].split("=");
@@ -249,11 +250,13 @@
     if (event.preventDefault) { event.preventDefault(); }
     if (action === "all") {
       state.glossary = ""; state.tag = ""; state.term = "";
+      if (state.letter === "") { state.letter = firstAvailableLetter(); }
       validCurrentLetter(getScopedTerms());
       navigate(true);
     } else if (action === "glossary") {
       state.glossary = node.getAttribute("data-glossary") || "";
       state.tag = ""; state.term = "";
+      if (state.letter === "") { state.letter = firstAvailableLetter(); }
       validCurrentLetter(getScopedTerms());
       navigate(true);
     } else if (action === "letter") {
