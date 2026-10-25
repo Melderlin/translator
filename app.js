@@ -174,12 +174,11 @@
     return html;
   }
   function relatedMarkup(term) {
-    var html = "", i, related, color;
+    var html = "", i, related;
     for (i = 0; i < term.related.length; i += 1) {
       related = findTerm(term.related[i]);
       if (!related) { continue; }
-      color = COLORS[related.glossary] || "#8a9bad";
-      html += '<button type="button" class="related-link ' + sectionClass(related.glossary) + '" style="--related-color:' + color + '" data-action="term" data-id="' + esc(related.id) + '">' +
+      html += '<button type="button" class="related-link ' + sectionClass(related.glossary) + '" data-action="term" data-id="' + esc(related.id) + '">' +
         '<strong>' + esc(related.term_en) + '</strong><small>' + esc(related.term_ru) + ' · ' + esc(glossaryShort(related.glossary)) + '</small></button>';
     }
     return html || '<span class="bottom-hint">Связи не указаны.</span>';

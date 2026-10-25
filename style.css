@@ -13,9 +13,9 @@ button:focus { outline: 3px solid #f2b84b; outline-offset: 1px; }
 .all-button.is-active { background: #fff; color: #172b46; border-color: #fff; }
 .section-nav { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; padding: 0 6px 5px; margin: 0; }
 .section-button { position: relative; width: 25%; min-height: 42px; padding: 4px 5px 4px 11px; margin: 0; border: 2px solid #172b46; border-radius: 7px; text-align: left; color: #213247; font-size: 14px; font-weight: bold; line-height: 1.12; background: #f5f8fb; }
-.section-button:before { content: ""; position: absolute; left: 4px; top: 7px; bottom: 7px; width: 4px; border-radius: 4px; background: var(--section-color, #73849a); }
+.section-button:before { content: ""; position: absolute; left: 4px; top: 7px; bottom: 7px; width: 4px; border-radius: 4px; background: #73849a; }
 .section-button small { display: block; margin-top: 2px; opacity: .76; font-size: 10px; letter-spacing: .7px; font-weight: bold; }
-.section-button.is-active { background: var(--section-color, #4b6077); border-color: #fff; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.section-button.is-active { background: #4b6077; border-color: #fff; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
 .section-button.is-active:before { background: #fff; }
 .section-button.nav-all { background: #e4ebf3; color: #23374e; }
 .micro-hint { padding: 0 10px 6px; color: #d6e0eb; font-size: 12px; line-height: 1.2; }
@@ -35,21 +35,21 @@ button:focus { outline: 3px solid #f2b84b; outline-offset: 1px; }
 .letter-button.is-active .letter-count { color: #e6eff8; }
 .term-list { margin: 0; padding: 0; }
 .letter-heading { margin: 13px 0 5px; padding: 3px 8px; border-radius: 5px; background: #dce5ee; color: #3d536b; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
-.term-row { --section-color: #64748b; margin: 0 0 5px; border: 1px solid #d1dbe5; border-left: 5px solid var(--section-color); border-radius: 7px; background: #fff; overflow: hidden; }
-.term-row.is-expanded { border-color: var(--section-color); box-shadow: 0 1px 4px rgba(26, 43, 62, .12); }
+.term-row { margin: 0 0 5px; border: 1px solid #d1dbe5; border-left: 5px solid #64748b; border-radius: 7px; background: #fff; overflow: hidden; }
+.term-row.is-expanded { border-color: #64748b; box-shadow: 0 1px 4px rgba(26, 43, 62, .12); }
 .term-main { display: block; width: 100%; min-height: 53px; padding: 6px 8px 6px 10px; border: 0; background: transparent; color: inherit; text-align: left; }
 .term-line { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-align: baseline; -webkit-align-items: baseline; align-items: baseline; -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 2px 8px; }
 .term-en { color: #1b2f47; font-size: 17px; font-weight: bold; line-height: 1.22; overflow-wrap: break-word; word-wrap: break-word; }
 .term-ru { color: #34475b; font-size: 16px; line-height: 1.22; }
 .term-pronunciation { display: block; margin-top: 3px; color: #637389; font-size: 13px; line-height: 1.2; }
-.row-cue { float: right; margin: 1px 1px 0 7px; color: var(--section-color); font-size: 17px; font-weight: bold; }
+.row-cue { float: right; margin: 1px 1px 0 7px; color: #64748b; font-size: 17px; font-weight: bold; }
 .term-detail { padding: 8px 10px 10px; border-top: 1px solid #e0e6ed; background: #f8fafc; }
 .term-definition { margin: 0 0 8px; font-size: 16px; line-height: 1.4; color: #27394d; overflow-wrap: break-word; word-wrap: break-word; }
 .detail-label { margin: 8px 0 4px; color: #65768a; font-size: 10px; font-weight: bold; letter-spacing: .8px; text-transform: uppercase; }
 .detail-tags { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin: -2px; }
 .tag-chip { min-height: 28px; margin: 2px; padding: 4px 7px; border: 1px solid #c8d6e3; border-radius: 14px; background: #e9f0f6; color: #354e67; font-size: 12px; }
 .related-list { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin: -2px; }
-.related-link { min-height: 39px; margin: 2px; padding: 5px 8px; border: 1px solid var(--related-color, #9aaabd); border-left: 4px solid var(--related-color, #9aaabd); border-radius: 6px; background: #fff; color: #21374f; font-size: 13px; text-align: left; line-height: 1.2; }
+.related-link { min-height: 39px; margin: 2px; padding: 5px 8px; border: 1px solid #9aaabd; border-left: 4px solid #9aaabd; border-radius: 6px; background: #fff; color: #21374f; font-size: 13px; text-align: left; line-height: 1.2; }
 .related-link strong { font-size: 14px; }
 .related-link small { display: block; margin-top: 2px; color: #63748a; font-size: 11px; }
 .detail-footer { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; gap: 7px; margin-top: 9px; }
@@ -60,14 +60,56 @@ button:focus { outline: 3px solid #f2b84b; outline-offset: 1px; }
 .bottom-nav { padding: 0; }
 .bottom-nav .section-button { border-color: #d8e0e8; min-height: 40px; }
 .bottom-hint { margin: 8px 0 0; color: #68798b; font-size: 12px; line-height: 1.35; }
-.section-pelvis { --section-color: #7057b8; }
-.section-vulva { --section-color: #c44770; }
-.section-vagina { --section-color: #16817d; }
-.section-uterus { --section-color: #2867b2; }
-.section-cervix { --section-color: #b9691c; }
-.section-tubes { --section-color: #39804f; }
-.section-ovaries { --section-color: #9451a8; }
-.section-cycle { --section-color: #987008; }
+.section-button.section-pelvis:before { background: #7057b8; }
+.section-button.is-active.section-pelvis { background: #7057b8; }
+.term-row.section-pelvis { border-left-color: #7057b8; }
+.term-row.section-pelvis.is-expanded { border-color: #7057b8; }
+.term-row.section-pelvis .row-cue { color: #7057b8; }
+.related-link.section-pelvis { border-color: #7057b8; border-left-color: #7057b8; }
+.section-button.section-vulva:before { background: #c44770; }
+.section-button.is-active.section-vulva { background: #c44770; }
+.term-row.section-vulva { border-left-color: #c44770; }
+.term-row.section-vulva.is-expanded { border-color: #c44770; }
+.term-row.section-vulva .row-cue { color: #c44770; }
+.related-link.section-vulva { border-color: #c44770; border-left-color: #c44770; }
+.section-button.section-vagina:before { background: #16817d; }
+.section-button.is-active.section-vagina { background: #16817d; }
+.term-row.section-vagina { border-left-color: #16817d; }
+.term-row.section-vagina.is-expanded { border-color: #16817d; }
+.term-row.section-vagina .row-cue { color: #16817d; }
+.related-link.section-vagina { border-color: #16817d; border-left-color: #16817d; }
+.section-button.section-uterus:before { background: #2867b2; }
+.section-button.is-active.section-uterus { background: #2867b2; }
+.term-row.section-uterus { border-left-color: #2867b2; }
+.term-row.section-uterus.is-expanded { border-color: #2867b2; }
+.term-row.section-uterus .row-cue { color: #2867b2; }
+.related-link.section-uterus { border-color: #2867b2; border-left-color: #2867b2; }
+.section-button.section-cervix:before { background: #b9691c; }
+.section-button.is-active.section-cervix { background: #b9691c; }
+.term-row.section-cervix { border-left-color: #b9691c; }
+.term-row.section-cervix.is-expanded { border-color: #b9691c; }
+.term-row.section-cervix .row-cue { color: #b9691c; }
+.related-link.section-cervix { border-color: #b9691c; border-left-color: #b9691c; }
+.section-button.section-tubes:before { background: #39804f; }
+.section-button.is-active.section-tubes { background: #39804f; }
+.term-row.section-tubes { border-left-color: #39804f; }
+.term-row.section-tubes.is-expanded { border-color: #39804f; }
+.term-row.section-tubes .row-cue { color: #39804f; }
+.related-link.section-tubes { border-color: #39804f; border-left-color: #39804f; }
+.section-button.section-ovaries:before { background: #9451a8; }
+.section-button.is-active.section-ovaries { background: #9451a8; }
+.term-row.section-ovaries { border-left-color: #9451a8; }
+.term-row.section-ovaries.is-expanded { border-color: #9451a8; }
+.term-row.section-ovaries .row-cue { color: #9451a8; }
+.related-link.section-ovaries { border-color: #9451a8; border-left-color: #9451a8; }
+.section-button.section-cycle:before { background: #987008; }
+.section-button.is-active.section-cycle { background: #987008; }
+.term-row.section-cycle { border-left-color: #987008; }
+.term-row.section-cycle.is-expanded { border-color: #987008; }
+.term-row.section-cycle .row-cue { color: #987008; }
+.related-link.section-cycle { border-color: #987008; border-left-color: #987008; }
+.section-button.is-active:before { background: #fff; }
+.bottom-nav .section-button.is-active { border-color: #fff; }
 @media screen and (min-width: 900px) {
   .brand-row { min-height: 36px; }
   .section-button { width: 25%; }
